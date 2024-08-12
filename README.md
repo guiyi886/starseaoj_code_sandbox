@@ -6,6 +6,6 @@
 
 使用 IDEA 的 Spring Boot 项目初始化工具，选择 **Java 8、Spring Boot 2.7 版本**。
 
-开发日志请查看 **星海OJ在线判题系统** 项目 README.md 文件的第五大点。
+开发日志请查看 **星海OJ在线判题系统** 项目 README.md 文件的**第五大点**。
 
 相关项目：星海OJ在线判题系统 https://github.com/guiyi886/starseaoj_backend
