@@ -15,7 +15,7 @@ import java.util.UUID;
  * @author guiyi
  * @Date 2024/8/13 上午1:27:02
  * @ClassName com.starseaoj.starseaojcodesandbox.JavaNativeCodeSandbox
- * @function -->
+ * @function --> java原生代码沙箱
  */
 public class JavaNativeCodeSandbox implements CodeSandbox {
     private static final String TMP_CODE_DIR = "tmpCode";

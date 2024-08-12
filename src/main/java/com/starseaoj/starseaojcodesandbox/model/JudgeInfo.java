@@ -3,7 +3,7 @@ package com.starseaoj.starseaojcodesandbox.model;
 import lombok.Data;
 
 /**
- * 判题信息
+ * 判题结果信息
  */
 @Data
 public class JudgeInfo {
