@@ -63,7 +63,7 @@ public class ProcessUtils {
             }
             executeMessage.setMessage(complieOutputStringBuilder.toString());
 
-            BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(complileProcess.getInputStream()));
+            BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(complileProcess.getErrorStream()));
             StringBuilder errorComplieOutputStringBuilder = new StringBuilder();
             String errorLine;
             while ((errorLine = errorBufferedReader.readLine()) != null) {
@@ -73,7 +73,7 @@ public class ProcessUtils {
         }
         stopWatch.stop();
         executeMessage.setTime(stopWatch.getTotalTimeMillis());
-        
+
         return executeMessage;
     }
 }
