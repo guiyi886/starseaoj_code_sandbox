@@ -58,7 +58,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
             ExecuteMessage executeMessage = ProcessUtils.runProcessAndGetMessage(compileCmd, "编译");
             System.out.println(executeMessage);
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            return getErrorResponse(e);
         }
 
         // 3.运行程序
@@ -71,7 +71,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
                 System.out.println(executeMessage);
                 executeMessageList.add(executeMessage);
             } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
+                return getErrorResponse(e);
             }
         }
 
@@ -84,6 +84,9 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         for (ExecuteMessage executeMessage : executeMessageList) {
             String errorMessage = executeMessage.getErrorMassage();
             if (StrUtil.isNotBlank(errorMessage)) {
+                executeCodeResponse.setMessage(errorMessage);
+                // 表示用户提交代码存在错误
+                executeCodeResponse.setStatus(3);
                 break;
             }
             if (maxTime < executeMessage.getTime()) {
@@ -102,10 +105,38 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         // judgeInfo.setMemory();
         executeCodeResponse.setJudgeInfo(new JudgeInfo());
 
+        // 5.文件清理
+        if (userCodeFile.getParentFile().exists()) {
+            boolean isDel = FileUtil.del(userCodeFile.getParentFile());
+            System.out.println("删除" + (isDel ? "成功" : "失败"));
+        }
 
         return executeCodeResponse;
     }
 
+    /**
+     * 6.错误处理
+     * 获取错误响应
+     *
+     * @param e
+     * @return
+     */
+    private ExecuteCodeResponse getErrorResponse(Exception e) {
+        ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+        executeCodeResponse.setOutputList(new ArrayList<>());
+        executeCodeResponse.setMessage(e.getMessage());
+        // 表示代码沙箱错误
+        executeCodeResponse.setStatus(2);
+        executeCodeResponse.setJudgeInfo(new JudgeInfo());
+
+        return executeCodeResponse;
+    }
+
+    /**
+     * 测试
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
         executeCodeRequest.setInputList(Arrays.asList("1 2", "3 4"));
