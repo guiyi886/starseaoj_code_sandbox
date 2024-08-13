@@ -1,6 +1,7 @@
 package com.starseaoj.starseaojcodesandbox.utils;
 
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
+import org.springframework.util.StopWatch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,6 +27,10 @@ public class ProcessUtils {
             throws IOException, InterruptedException {
         // 执行结果
         ExecuteMessage executeMessage = new ExecuteMessage();
+
+        // 开始计时
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
         // 执行命令
         Process complileProcess = Runtime.getRuntime().exec(command);
@@ -66,7 +71,9 @@ public class ProcessUtils {
             }
             executeMessage.setErrorMassage(errorComplieOutputStringBuilder.toString());
         }
-
+        stopWatch.stop();
+        executeMessage.setTime(stopWatch.getTotalTimeMillis());
+        
         return executeMessage;
     }
 }

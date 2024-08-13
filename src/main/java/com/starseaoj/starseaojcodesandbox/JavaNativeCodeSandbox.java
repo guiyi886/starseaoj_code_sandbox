@@ -2,14 +2,17 @@ package com.starseaoj.starseaojcodesandbox;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.StrUtil;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeResponse;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
+import com.starseaoj.starseaojcodesandbox.model.JudgeInfo;
 import com.starseaoj.starseaojcodesandbox.utils.ProcessUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -59,18 +62,48 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         }
 
         // 3.运行程序
+        List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
             String runCmd = String.format("java -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
             ExecuteMessage executeMessage = null;
             try {
                 executeMessage = ProcessUtils.runProcessAndGetMessage(runCmd, "运行");
                 System.out.println(executeMessage);
+                executeMessageList.add(executeMessage);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        return null;
+        // 4.整理输出结果
+        ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+        List<String> outputList = new ArrayList<>();
+
+        // 取所有测试用例的最大值
+        long maxTime = 0;
+        for (ExecuteMessage executeMessage : executeMessageList) {
+            String errorMessage = executeMessage.getErrorMassage();
+            if (StrUtil.isNotBlank(errorMessage)) {
+                break;
+            }
+            if (maxTime < executeMessage.getTime()) {
+                maxTime = executeMessage.getTime();
+            }
+            outputList.add(executeMessage.getMessage());
+        }
+        if (outputList.size() == executeMessageList.size()) {
+            executeCodeResponse.setStatus(1);
+        }
+        executeCodeResponse.setOutputList(outputList);
+        JudgeInfo judgeInfo = new JudgeInfo();
+        judgeInfo.setTime(maxTime);
+
+        // 要借助第三库实现，非常麻烦
+        // judgeInfo.setMemory();
+        executeCodeResponse.setJudgeInfo(new JudgeInfo());
+
+
+        return executeCodeResponse;
     }
 
     public static void main(String[] args) {
