@@ -143,7 +143,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         executeCodeRequest.setLanguage("java");
 
         // 获取Main.java文件
-        String code = ResourceUtil.readStr("testCode\\unsafe\\SleepError.java", StandardCharsets.UTF_8);
+        String code = ResourceUtil.readStr("testCode/unsafe/ReadFileError.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
 
         // 调用代码沙箱

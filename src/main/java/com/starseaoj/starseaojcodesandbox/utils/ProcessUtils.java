@@ -48,7 +48,7 @@ public class ProcessUtils {
             StringBuilder complieOutputStringBuilder = new StringBuilder();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                complieOutputStringBuilder.append(line);
+                complieOutputStringBuilder.append(line).append("\n");
             }
             executeMessage.setMessage(complieOutputStringBuilder.toString());
         } else {
@@ -59,7 +59,7 @@ public class ProcessUtils {
             StringBuilder complieOutputStringBuilder = new StringBuilder();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                complieOutputStringBuilder.append(line);
+                complieOutputStringBuilder.append(line).append("\n");
             }
             executeMessage.setMessage(complieOutputStringBuilder.toString());
 
@@ -67,7 +67,7 @@ public class ProcessUtils {
             StringBuilder errorComplieOutputStringBuilder = new StringBuilder();
             String errorLine;
             while ((errorLine = errorBufferedReader.readLine()) != null) {
-                errorComplieOutputStringBuilder.append(errorLine);
+                errorComplieOutputStringBuilder.append(errorLine).append("\n");
             }
             executeMessage.setErrorMassage(errorComplieOutputStringBuilder.toString());
         }
