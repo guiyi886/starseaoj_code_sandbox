@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
  * @function --> 终端执行命令工具类
  */
 public class ProcessUtils {
+    private static final long TIME_OUT = 5000L;
+
     /**
      * 运行命令并返回结果
      *
@@ -33,10 +35,21 @@ public class ProcessUtils {
         stopWatch.start();
 
         // 执行命令
-        Process complileProcess = Runtime.getRuntime().exec(command);
+        Process process = Runtime.getRuntime().exec(command);
 
-        // 等待编译完成，获取进程的退出值
-        int exitValue = complileProcess.waitFor();
+        // 超时控制:创建一个守护线程，超时后自动中断 Process 实现
+        new Thread(() -> {
+            try {
+                Thread.sleep(TIME_OUT);
+                System.out.println("超时控制 -> 中断");
+                process.destroy();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+
+        // 等待命令执行完成，获取进程的退出值
+        int exitValue = process.waitFor();
         executeMessage.setExistValue(exitValue);
 
         if (exitValue == 0) {
@@ -44,7 +57,7 @@ public class ProcessUtils {
 
             // 获取程序输出
             // 注意是Input而不是Output，因为Process类是这么定义的，不用纠结
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(complileProcess.getInputStream()));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder complieOutputStringBuilder = new StringBuilder();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -55,7 +68,7 @@ public class ProcessUtils {
             System.out.println(opName + "失败：" + exitValue);
 
             // 获取输出流和错误流
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(complileProcess.getInputStream()));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder complieOutputStringBuilder = new StringBuilder();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -63,7 +76,7 @@ public class ProcessUtils {
             }
             executeMessage.setMessage(complieOutputStringBuilder.toString());
 
-            BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(complileProcess.getErrorStream()));
+            BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             StringBuilder errorComplieOutputStringBuilder = new StringBuilder();
             String errorLine;
             while ((errorLine = errorBufferedReader.readLine()) != null) {
