@@ -30,6 +30,8 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
 
     private static final String JAVA_CLASS_NAME = "Main.java";
 
+    private static final String SECURITY_MANAGER_PATH = "D:\\JavaProjects\\starseaoj_code_sandbox\\src\\main\\resources\\security";
+
     // 屏蔽关键字
     private static final List<String> BLOCK_LIST = Arrays.asList("Files", "exec", "bat", "rm");
 
@@ -44,16 +46,18 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
+        // System.setSecurityManager(new DefaultSecurityManager());
+
         List<String> inputList = executeCodeRequest.getInputList();
         String code = executeCodeRequest.getCode();
 
         // 获取匹配到的屏蔽词
         FoundWord foundWord = WORD_TREE.matchWord(code);
-        if (foundWord != null) {
-            // 输出屏蔽词
-            System.out.println("包含屏蔽词" + foundWord.getFoundWord());
-            return null;
-        }
+        // if (foundWord != null) {
+        //     // 输出屏蔽词
+        //     System.out.println("包含屏蔽词" + foundWord.getFoundWord());
+        //     return null;
+        // }
 
         // 根据资源路径推导出模块根目录
         // String userDir = System.getProperty("user.dir");  // 多模块时用该语句会获取成第一个模块的根目录
@@ -86,7 +90,8 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         // 3.运行程序
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
-            String runCmd = String.format("java -Xmx256m -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
+            String runCmd = String.format("java -Xmx256m -Dfile.encoding=UTF-8 -cp %s;%s -Djava.security.manager=MySecurityManager Main %s",
+                    userCodeParentPath, SECURITY_MANAGER_PATH, inputArgs);
             try {
                 ExecuteMessage executeMessage = ProcessUtils.runProcessAndGetMessage(runCmd, "运行");
                 System.out.println(executeMessage);
@@ -163,7 +168,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         executeCodeRequest.setInputList(Arrays.asList("1 2", "3 4"));
         executeCodeRequest.setLanguage("java");
 
-        // 获取Main.java文件
+        // 获取java文件
         String code = ResourceUtil.readStr("testCode/unsafe/ReadFileError.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
 
@@ -172,4 +177,5 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
         System.out.println(executeCodeResponse);
     }
+
 }
