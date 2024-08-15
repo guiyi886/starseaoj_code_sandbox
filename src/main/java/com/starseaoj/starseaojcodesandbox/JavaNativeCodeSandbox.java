@@ -3,6 +3,8 @@ package com.starseaoj.starseaojcodesandbox;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.dfa.FoundWord;
+import cn.hutool.dfa.WordTree;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeResponse;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
@@ -28,10 +30,30 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
 
     private static final String JAVA_CLASS_NAME = "Main.java";
 
+    // 屏蔽关键字
+    private static final List<String> BLOCK_LIST = Arrays.asList("Files", "exec", "bat", "rm");
+
+    // 校检代码检查屏蔽词
+    private static final WordTree WORD_TREE = new WordTree();
+
+    static {
+        // 加入字典树
+        WORD_TREE.addWords(BLOCK_LIST);
+    }
+
+
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
         List<String> inputList = executeCodeRequest.getInputList();
         String code = executeCodeRequest.getCode();
+
+        // 获取匹配到的屏蔽词
+        FoundWord foundWord = WORD_TREE.matchWord(code);
+        if (foundWord != null) {
+            // 输出屏蔽词
+            System.out.println("包含屏蔽词" + foundWord.getFoundWord());
+            return null;
+        }
 
         // 根据资源路径推导出模块根目录
         // String userDir = System.getProperty("user.dir");  // 多模块时用该语句会获取成第一个模块的根目录
@@ -142,7 +164,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         executeCodeRequest.setLanguage("java");
 
         // 获取Main.java文件
-        String code = ResourceUtil.readStr("testCode/unsafe/MemoryError.java", StandardCharsets.UTF_8);
+        String code = ResourceUtil.readStr("testCode/unsafe/ReadFileError.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
 
         // 调用代码沙箱
