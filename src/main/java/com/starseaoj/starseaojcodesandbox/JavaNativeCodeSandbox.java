@@ -64,7 +64,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         // 3.运行程序
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
-            String runCmd = String.format("java -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
+            String runCmd = String.format("java -Xmx256m -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
             try {
                 ExecuteMessage executeMessage = ProcessUtils.runProcessAndGetMessage(runCmd, "运行");
                 System.out.println(executeMessage);
@@ -142,7 +142,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         executeCodeRequest.setLanguage("java");
 
         // 获取Main.java文件
-        String code = ResourceUtil.readStr("testCode/unsafe/sleepError.java", StandardCharsets.UTF_8);
+        String code = ResourceUtil.readStr("testCode/unsafe/MemoryError.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
 
         // 调用代码沙箱
