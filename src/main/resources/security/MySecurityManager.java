@@ -1,3 +1,5 @@
+import java.security.Permission;
+
 /**
  * @author guiyi
  * @Date 2024/8/16 上午2:54:39
@@ -6,10 +8,10 @@
  */
 public class MySecurityManager extends SecurityManager {
     // 所有权限 若不注释则全部放行
-    /* @Override
+    @Override
     public void checkPermission(Permission perm) {
         System.out.println("所有权限放开");
-    } */
+    }
 
     // cmd命令
     @Override
