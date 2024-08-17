@@ -30,11 +30,16 @@ import java.util.UUID;
  * docker实现代码沙箱
  */
 public class JavaDockerCodeSandbox implements CodeSandbox {
+    // 临时代码文件夹名
     private static final String TMP_CODE_DIR = "tmpCode";
 
     private static final String JAVA_CLASS_NAME = "Main.java";
 
-    private static final Boolean FIRST_INIT = true;
+    // 镜像名
+    private static final String IMAGE_NAME = "openjdk:8-alpine";
+
+    // 自定义容器名
+    private static final String CONTAINER_NAME = "java8_container";
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
@@ -76,10 +81,9 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         // 创建 Docker 客户端
         DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
-        // 拉取镜像
-        String image = "openjdk:8-alpine";
-        if (FIRST_INIT) {
-            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
+        // 判断镜像是否存在
+        if (!checkImageExists(dockerClient, IMAGE_NAME)) {
+            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(IMAGE_NAME);
             PullImageResultCallback pullImageResultCallback = new PullImageResultCallback() {
                 @Override
                 public void onNext(PullResponseItem item) {
@@ -95,39 +99,41 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
                 System.out.println("拉取镜像异常");
                 throw new RuntimeException(e);
             }
+            System.out.println("下载镜像openjdk:8-alpine完成");
         }
-        System.out.println("下载完成");
 
-        // 创建容器
-        CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
-        HostConfig hostConfig = new HostConfig();
-        hostConfig.withMemory(100 * 1000 * 1000L);
-        hostConfig.withCpuCount(1L);
-        hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));  // 文件路径映射
+        // 判断容器是否存在
+        if (!checkContainerExists(dockerClient, CONTAINER_NAME)) {
+            // 创建容器
+            CreateContainerCmd containerCmd = dockerClient.createContainerCmd(IMAGE_NAME);
+            HostConfig hostConfig = new HostConfig();
+            hostConfig.withMemory(100 * 1000 * 1000L);
+            hostConfig.withCpuCount(1L);
+            hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));  // 文件路径映射
 
-        CreateContainerResponse createContainerResponse = containerCmd
-                .withHostConfig(hostConfig)
-                // .withNetworkDisabled(true)
-                // .withReadonlyRootfs(true)
-                .withAttachStdin(true)  // 与本地终端连接
-                .withAttachStderr(true)
-                .withAttachStdout(true)
-                .withTty(true)  // 创建交互终端
-                .exec();
-        System.out.println(createContainerResponse);
-        String containerId = createContainerResponse.getId();
-
+            CreateContainerResponse createContainerResponse = containerCmd
+                    .withName(CONTAINER_NAME)    // 设置容器名称
+                    .withHostConfig(hostConfig)
+                    // .withNetworkDisabled(true)
+                    // .withReadonlyRootfs(true)
+                    .withAttachStdin(true)  // 与本地终端连接
+                    .withAttachStderr(true)
+                    .withAttachStdout(true)
+                    .withTty(true)  // 创建交互终端
+                    .exec();
+            System.out.println("创建容器成功" + createContainerResponse);
+        }
         // 启动容器
-        dockerClient.startContainerCmd(containerId).exec();
+        dockerClient.startContainerCmd(CONTAINER_NAME).exec();
 
         // 4.在容器中执行代码，得到输出结果
-        // docker exec silly_kapitsa java -cp /app Main 1 3
+        // docker exec java8_container java -cp /app Main 1 3
         // 执行命令并获取结果
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
             String[] inputArgsArray = inputArgs.split(" ");
             String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app", "Main"}, inputArgsArray);
-            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(CONTAINER_NAME)
                     .withCmd(cmdArray)
                     .withAttachStderr(true)
                     .withAttachStdin(true)
@@ -154,7 +160,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
             final long[] maxMemory = {0L};
             // 获取占用的内存
-            StatsCmd statsCmd = dockerClient.statsCmd(containerId);
+            StatsCmd statsCmd = dockerClient.statsCmd(CONTAINER_NAME);
             ResultCallback<Statistics> statisticsResultCallback = statsCmd.exec(new ResultCallback<Statistics>() {
                 @Override
                 public void onNext(Statistics statistics) {
@@ -260,6 +266,46 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         executeCodeResponse.setJudgeInfo(new JudgeInfo());
 
         return executeCodeResponse;
+    }
+
+    /**
+     * 判断某个镜像是否存在
+     *
+     * @param dockerClient
+     * @param imageName
+     * @return
+     */
+    private static boolean checkImageExists(DockerClient dockerClient, String imageName) {
+        // 获取本地所有镜像的列表
+        List<Image> images = dockerClient.listImagesCmd().exec();
+
+        // 遍历镜像列表，检查是否包含指定镜像
+        for (Image image : images) {
+            for (String tag : image.getRepoTags()) {
+                if (tag.equals(imageName)) {
+                    return true;  // 镜像存在
+                }
+            }
+        }
+        return false;  // 镜像不存在
+    }
+
+    /**
+     * 判断容器是否存在
+     *
+     * @param dockerClient
+     * @param containerName
+     * @return
+     */
+    private static boolean checkContainerExists(DockerClient dockerClient, String containerName) {
+        // 获取所有运行中和停止的容器列表
+        List<Container> containers = dockerClient.listContainersCmd()
+                .withShowAll(true)  // 显示所有容器，包括停止的
+                .withNameFilter(Arrays.asList(containerName))
+                .exec();
+
+        // 判断列表是否为空
+        return !containers.isEmpty();
     }
 
     /**
