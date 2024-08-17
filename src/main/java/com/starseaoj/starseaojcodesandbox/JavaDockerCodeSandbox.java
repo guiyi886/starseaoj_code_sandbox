@@ -103,26 +103,27 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         }
 
         // 判断容器是否存在
-        if (!checkContainerExists(dockerClient, CONTAINER_NAME)) {
-            // 创建容器
-            CreateContainerCmd containerCmd = dockerClient.createContainerCmd(IMAGE_NAME);
-            HostConfig hostConfig = new HostConfig();
-            hostConfig.withMemory(100 * 1000 * 1000L);
-            hostConfig.withCpuCount(1L);
-            hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));  // 文件路径映射
-
-            CreateContainerResponse createContainerResponse = containerCmd
-                    .withName(CONTAINER_NAME)    // 设置容器名称
-                    .withHostConfig(hostConfig)
-                    // .withNetworkDisabled(true)
-                    // .withReadonlyRootfs(true)
-                    .withAttachStdin(true)  // 与本地终端连接
-                    .withAttachStderr(true)
-                    .withAttachStdout(true)
-                    .withTty(true)  // 创建交互终端
-                    .exec();
-            System.out.println("创建容器成功" + createContainerResponse);
+        if (checkContainerExists(dockerClient, CONTAINER_NAME)) {
+            // 先停止并删除旧容器
+            dockerClient.removeContainerCmd(CONTAINER_NAME).withForce(true).exec();
         }
+        // 创建容器
+        CreateContainerCmd containerCmd = dockerClient.createContainerCmd(IMAGE_NAME);
+        HostConfig hostConfig = new HostConfig();
+        hostConfig.withMemory(100 * 1000 * 1000L);
+        hostConfig.withCpuCount(1L);
+        hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));  // 文件路径映射
+
+        CreateContainerResponse createContainerResponse = containerCmd
+                .withName(CONTAINER_NAME)    // 设置容器名称
+                .withHostConfig(hostConfig)
+                // .withNetworkDisabled(true)
+                // .withReadonlyRootfs(true)
+                .withAttachStdin(true)  // 与本地终端连接
+                .withAttachStderr(true)
+                .withAttachStdout(true)
+                .withTty(true)  // 创建交互终端
+                .exec();
         // 启动容器
         dockerClient.startContainerCmd(CONTAINER_NAME).exec();
 
@@ -306,6 +307,18 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
         // 判断列表是否为空
         return !containers.isEmpty();
+    }
+
+    /**
+     * 判断容器是否在运行
+     * @param dockerClient
+     * @param containerName
+     * @return
+     */
+    private static boolean isContainerRunning(DockerClient dockerClient, String containerName) {
+        InspectContainerResponse containerResponse = dockerClient.inspectContainerCmd(containerName).exec();
+        InspectContainerResponse.ContainerState state = containerResponse.getState();
+        return state.getRunning();
     }
 
     /**
