@@ -2,21 +2,18 @@ package com.starseaoj.starseaojcodesandbox;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.ArrayUtil;
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.PullImageCmd;
-import com.github.dockerjava.api.command.PullImageResultCallback;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.PullResponseItem;
-import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.command.*;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeResponse;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
 import com.starseaoj.starseaojcodesandbox.model.JudgeInfo;
 import com.starseaoj.starseaojcodesandbox.utils.ProcessUtils;
+import org.springframework.util.StopWatch;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +30,6 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
     private static final String TMP_CODE_DIR = "tmpCode";
 
     private static final String JAVA_CLASS_NAME = "Main.java";
-
-    private static final String SECURITY_MANAGER_PATH = "D:\\JavaProjects\\starseaoj_code_sandbox\\src\\main\\resources\\security";
 
     private static final Boolean FIRST_INIT = true;
 
@@ -76,7 +71,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
         // 3.创建容器，复制文件到其中
         // 创建 Docker 客户端
-        DockerClient dockerClient = DockerClientBuilder.getInstance("tcp://8.134.202.187:2375").build();
+        DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
         // 拉取镜像
         String image = "openjdk:8-alpine";
@@ -121,6 +116,54 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
         // 启动容器
         dockerClient.startContainerCmd(containerId).exec();
+
+        // docker exec silly_kapitsa java -cp /app Main 1 3
+        // 执行命令并获取结果
+        List<ExecuteMessage>executeMessages=new ArrayList<>();
+        for(String inputArgs:inputList){
+            StopWatch stopWatch=new StopWatch();
+            String[] inputArgsArray = inputArgs.split(" ");
+            String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app", "Main"}, inputArgsArray);
+            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+                    .withCmd(cmdArray)
+                    .withAttachStderr(true)
+                    .withAttachStdin(true)
+                    .withAttachStdout(true)
+                    .exec();
+            System.out.println("创建执行命令：" + execCreateCmdResponse);
+
+            ExecuteMessage executeMessage = new ExecuteMessage();
+            final String[] message = {null};
+            final String[] errorMessage = {null};
+
+            String execId = execCreateCmdResponse.getId();
+            ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
+
+                @Override
+                public void onNext(Frame frame) {
+                    StreamType streamType = frame.getStreamType();
+                    if (StreamType.STDERR.equals(streamType)) {
+                        errorMessage[0] = new String(frame.getPayload());
+                        System.out.println("输出错误结果：" + errorMessage[0]);
+                    } else {
+                        message[0] = new String(frame.getPayload());
+                        System.out.println("输出结果：" + message[0]);
+                    }
+                    super.onNext(frame);
+                }
+            };
+
+            try {
+                dockerClient.execStartCmd(execId)
+                        .exec(execStartResultCallback)
+                        .awaitCompletion();
+            } catch (InterruptedException e) {
+                System.out.println("程序执行异常");
+                throw new RuntimeException(e);
+            }
+
+
+        }
 
         // todo
         ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();

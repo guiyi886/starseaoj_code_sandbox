@@ -20,7 +20,7 @@ public class DockerDemo {
         DockerClient dockerClient = null;
 
         // 创建 Docker 客户端
-        dockerClient = DockerClientBuilder.getInstance("tcp://8.134.202.187:2375").build();
+        dockerClient = DockerClientBuilder.getInstance().build();
 
         // 列出所有容器，包括已停止的容器
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).exec();
@@ -41,7 +41,7 @@ public class DockerDemo {
                 super.onNext(item);
             }
         };
-        Container container = containers.get(2);
+        Container container = containers.get(0);
 
         // 阻塞等待日志输出
         dockerClient.logContainerCmd(container.getId())
