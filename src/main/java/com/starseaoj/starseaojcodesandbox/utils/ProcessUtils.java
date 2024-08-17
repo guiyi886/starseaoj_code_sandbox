@@ -38,7 +38,7 @@ public class ProcessUtils {
         Process process = Runtime.getRuntime().exec(command);
 
         // 超时控制:创建一个守护线程，超时后自动中断 Process 实现
-        new Thread(() -> {
+        /* new Thread(() -> {
             try {
                 Thread.sleep(TIME_OUT);
                 System.out.println("超时控制 -> 中断");
@@ -46,7 +46,7 @@ public class ProcessUtils {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }).start();
+        }).start(); */
 
         // 等待命令执行完成，获取进程的退出值
         int exitValue = process.waitFor();
@@ -82,7 +82,7 @@ public class ProcessUtils {
             while ((errorLine = errorBufferedReader.readLine()) != null) {
                 errorComplieOutputStringBuilder.append(errorLine).append("\n");
             }
-            executeMessage.setErrorMassage(errorComplieOutputStringBuilder.toString());
+            executeMessage.setErrorMessage(errorComplieOutputStringBuilder.toString());
         }
         stopWatch.stop();
         executeMessage.setTime(stopWatch.getTotalTimeMillis());

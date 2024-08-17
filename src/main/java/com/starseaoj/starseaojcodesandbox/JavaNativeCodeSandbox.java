@@ -108,7 +108,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         // 取所有测试用例的最大值
         long maxTime = 0;
         for (ExecuteMessage executeMessage : executeMessageList) {
-            String errorMessage = executeMessage.getErrorMassage();
+            String errorMessage = executeMessage.getErrorMessage();
             if (StrUtil.isNotBlank(errorMessage)) {
                 executeCodeResponse.setMessage(errorMessage);
                 // 表示用户提交代码存在错误
