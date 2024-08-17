@@ -103,6 +103,8 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         }
 
         // 判断容器是否存在
+        // 注意容器不可复用，因为每次的挂载目录都不同，且docker 不支持直接修改已经创建的容器的挂载目录。
+        // 因此只能删除后重新创建容器并挂载目录。
         if (checkContainerExists(dockerClient, CONTAINER_NAME)) {
             // 先停止并删除旧容器
             dockerClient.removeContainerCmd(CONTAINER_NAME).withForce(true).exec();
@@ -311,6 +313,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
     /**
      * 判断容器是否在运行
+     *
      * @param dockerClient
      * @param containerName
      * @return
