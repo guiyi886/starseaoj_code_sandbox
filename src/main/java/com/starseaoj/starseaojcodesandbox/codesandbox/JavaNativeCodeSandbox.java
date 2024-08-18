@@ -1,4 +1,4 @@
-package com.starseaoj.starseaojcodesandbox;
+package com.starseaoj.starseaojcodesandbox.codesandbox;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * @author guiyi
  * @Date 2024/8/13 上午1:27:02
- * @ClassName com.starseaoj.starseaojcodesandbox.JavaNativeCodeSandbox
+ * @ClassName com.starseaoj.starseaojcodesandbox.codesandbox.JavaNativeCodeSandbox
  * @function --> java原生代码沙箱
  */
 public class JavaNativeCodeSandbox implements CodeSandbox {

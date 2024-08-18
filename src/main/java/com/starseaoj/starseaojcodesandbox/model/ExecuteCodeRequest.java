@@ -14,7 +14,7 @@ import java.util.List;
  * @function -->    判题机请求参数
  */
 @Data
-@Builder    // 构造器模式
+@Builder    // 建造器模式
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExecuteCodeRequest {

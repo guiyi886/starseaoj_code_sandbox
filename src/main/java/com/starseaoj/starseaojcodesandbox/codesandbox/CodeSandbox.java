@@ -1,4 +1,4 @@
-package com.starseaoj.starseaojcodesandbox;
+package com.starseaoj.starseaojcodesandbox.codesandbox;
 
 
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;

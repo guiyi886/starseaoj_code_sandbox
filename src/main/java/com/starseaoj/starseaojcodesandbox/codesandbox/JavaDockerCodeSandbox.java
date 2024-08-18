@@ -1,4 +1,4 @@
-package com.starseaoj.starseaojcodesandbox;
+package com.starseaoj.starseaojcodesandbox.codesandbox;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
