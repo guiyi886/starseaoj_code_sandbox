@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * docker实现代码沙箱
@@ -34,6 +35,8 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
     private static final String TMP_CODE_DIR = "tmpCode";
 
     private static final String JAVA_CLASS_NAME = "Main.java";
+
+    private static final long TIME_OUT = 10000L;
 
     // 镜像名
     private static final String IMAGE_NAME = "openjdk:8-alpine";
@@ -113,14 +116,18 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd(IMAGE_NAME);
         HostConfig hostConfig = new HostConfig();
         hostConfig.withMemory(100 * 1000 * 1000L);
+        hostConfig.withMemorySwap(0L);
         hostConfig.withCpuCount(1L);
         hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));  // 文件路径映射
+        // 配置seccomp
+        String profileConfig = ResourceUtil.readUtf8Str("seccomp/profile.json");
+        hostConfig.withSecurityOpts(Arrays.asList("seccomp=" + profileConfig));
 
         CreateContainerResponse createContainerResponse = containerCmd
                 .withName(CONTAINER_NAME)    // 设置容器名称
                 .withHostConfig(hostConfig)
-                // .withNetworkDisabled(true)
-                // .withReadonlyRootfs(true)
+                .withNetworkDisabled(true)  // 禁用网络
+                .withReadonlyRootfs(true)   // 禁止向root根目录写文件
                 .withAttachStdin(true)  // 与本地终端连接
                 .withAttachStderr(true)
                 .withAttachStdout(true)
@@ -146,7 +153,15 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
             final String[] message = {null};
             final String[] errorMessage = {null};
+            final boolean[] timeout = {true}; // 超时标志
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
+                @Override
+                public void onComplete() {
+                    // 如果执行完成，设置为false表示未超时
+                    timeout[0] = false;
+                    super.onComplete();
+                }
+
                 @Override
                 public void onNext(Frame frame) {
                     StreamType streamType = frame.getStreamType();
@@ -196,7 +211,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
                 stopWatch.start();
                 dockerClient.execStartCmd(execId)
                         .exec(execStartResultCallback)
-                        .awaitCompletion();
+                        .awaitCompletion(TIME_OUT, TimeUnit.MILLISECONDS);  // 设置超时时间
                 stopWatch.stop();
                 time = stopWatch.getLastTaskTimeMillis();
 

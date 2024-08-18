@@ -14,8 +14,6 @@ import java.io.InputStreamReader;
  * @function --> 终端执行命令工具类
  */
 public class ProcessUtils {
-    private static final long TIME_OUT = 10000L;
-
     /**
      * 运行命令并返回结果
      *
