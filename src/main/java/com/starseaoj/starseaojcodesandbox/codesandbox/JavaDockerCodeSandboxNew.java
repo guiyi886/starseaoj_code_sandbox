@@ -11,6 +11,7 @@ import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeResponse;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import java.io.Closeable;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
  * @ClassName com.starseaoj.starseaojcodesandbox.codesandbox.JavaDockerCodeSandboxNew
  * @function --> docker代码沙箱模板实现
  */
+@Component
 public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
     private static final long TIME_OUT = 5000L;
 
@@ -259,7 +261,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
         ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
         executeCodeRequest.setInputList(Arrays.asList("1 2", "3 4"));
         executeCodeRequest.setLanguage("java");
-    
+
         // 获取java文件
         // String code = ResourceUtil.readStr("testCode/unsafe/ReadFileError.java", StandardCharsets.UTF_8);
         String code = ResourceUtil.readStr("testCode/Main.java", StandardCharsets.UTF_8);

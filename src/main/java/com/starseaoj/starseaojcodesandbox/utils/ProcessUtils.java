@@ -1,11 +1,14 @@
 package com.starseaoj.starseaojcodesandbox.utils;
 
 import com.starseaoj.starseaojcodesandbox.model.ExecuteMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author guiyi
@@ -36,15 +39,15 @@ public class ProcessUtils {
         Process process = Runtime.getRuntime().exec(command);
 
         // 超时控制:创建一个守护线程，超时后自动中断 Process 实现
-        /* new Thread(() -> {
+        new Thread(() -> {
             try {
-                Thread.sleep(TIME_OUT);
+                Thread.sleep(5000L);
                 System.out.println("超时控制 -> 中断");
                 process.destroy();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }).start(); */
+        }).start();
 
         // 等待命令执行完成，获取进程的退出值
         int exitValue = process.waitFor();
@@ -56,31 +59,34 @@ public class ProcessUtils {
             // 获取程序输出
             // 注意是Input而不是Output，因为Process类是这么定义的，不用纠结
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder complieOutputStringBuilder = new StringBuilder();
+            List<String> outputList = new ArrayList<>();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                complieOutputStringBuilder.append(line).append("\n");
+                outputList.add(line);
             }
-            executeMessage.setMessage(complieOutputStringBuilder.toString());
+            executeMessage.setMessage(StringUtils.join(outputList, "\n"));
         } else {
             System.out.println(opName + "失败：" + exitValue);
 
             // 获取输出流和错误流
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder complieOutputStringBuilder = new StringBuilder();
+
+            List<String> outputList = new ArrayList<>();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                complieOutputStringBuilder.append(line).append("\n");
+                outputList.add(line);
             }
-            executeMessage.setMessage(complieOutputStringBuilder.toString());
+            executeMessage.setMessage(StringUtils.join(outputList, "\n"));
 
             BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            StringBuilder errorComplieOutputStringBuilder = new StringBuilder();
+
+            List<String> errorOutputList = new ArrayList<>();
             String errorLine;
             while ((errorLine = errorBufferedReader.readLine()) != null) {
-                errorComplieOutputStringBuilder.append(errorLine).append("\n");
+                errorOutputList.add(errorLine);
             }
-            executeMessage.setErrorMessage(errorComplieOutputStringBuilder.toString());
+            executeMessage.setMessage(StringUtils.join(errorOutputList, "\n"));
+
         }
         stopWatch.stop();
         executeMessage.setTime(stopWatch.getTotalTimeMillis());
