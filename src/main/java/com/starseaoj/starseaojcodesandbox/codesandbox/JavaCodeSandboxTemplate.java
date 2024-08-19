@@ -157,12 +157,12 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
             executeCodeResponse.setStatus(1);
         }
         executeCodeResponse.setOutputList(outputList);
+
         JudgeInfo judgeInfo = new JudgeInfo();
         judgeInfo.setTime(maxTime);
-
         // 要借助第三库实现，非常麻烦
         // judgeInfo.setMemory();
-        executeCodeResponse.setJudgeInfo(new JudgeInfo());
+        executeCodeResponse.setJudgeInfo(judgeInfo);
 
         return executeCodeResponse;
     }
