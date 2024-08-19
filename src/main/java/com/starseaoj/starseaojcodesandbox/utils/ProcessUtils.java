@@ -17,6 +17,8 @@ import java.util.List;
  * @function --> 终端执行命令工具类
  */
 public class ProcessUtils {
+    private static final long TIME_OUT = 10000L;
+
     /**
      * 运行命令并返回结果
      *
@@ -41,7 +43,7 @@ public class ProcessUtils {
         // 超时控制:创建一个守护线程，超时后自动中断 Process 实现
         new Thread(() -> {
             try {
-                Thread.sleep(5000L);
+                Thread.sleep(TIME_OUT);
                 System.out.println("超时控制 -> 中断");
                 process.destroy();
             } catch (InterruptedException e) {
