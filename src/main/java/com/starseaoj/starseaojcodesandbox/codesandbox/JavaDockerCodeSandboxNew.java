@@ -268,8 +268,8 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
         executeCodeRequest.setCode(code);
 
         // 调用代码沙箱
-        JavaDockerCodeSandbox javaNativeCodeSandbox = new JavaDockerCodeSandbox();
-        ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
+        JavaDockerCodeSandboxNew javaDockerCodeSandboxNew = new JavaDockerCodeSandboxNew();
+        ExecuteCodeResponse executeCodeResponse = javaDockerCodeSandboxNew.executeCode(executeCodeRequest);
         System.out.println(executeCodeResponse);
     }
 }

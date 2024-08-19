@@ -355,8 +355,8 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         executeCodeRequest.setCode(code);
 
         // 调用代码沙箱
-        JavaDockerCodeSandbox javaNativeCodeSandbox = new JavaDockerCodeSandbox();
-        ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
+        JavaDockerCodeSandbox javaDockerCodeSandbox = new JavaDockerCodeSandbox();
+        ExecuteCodeResponse executeCodeResponse = javaDockerCodeSandbox.executeCode(executeCodeRequest);
         System.out.println(executeCodeResponse);
     }
 
