@@ -1,6 +1,6 @@
 package com.starseaoj.starseaojcodesandbox.controller;
 
-import com.starseaoj.starseaojcodesandbox.codesandbox.JavaNativeCodeSandboxNew;
+import com.starseaoj.starseaojcodesandbox.codesandbox.JavaDockerCodeSandboxNew;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeRequest;
 import com.starseaoj.starseaojcodesandbox.model.ExecuteCodeResponse;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,9 +24,12 @@ public class MainController {
 
     private static final String AUTH_REQUEST_SECRET = "secretKey";
 
+    // @Resource
+    // private JavaNativeCodeSandboxNew javaNativeCodeSandboxNew;
+
     @Resource
-    private JavaNativeCodeSandboxNew javaNativeCodeSandboxNew;
-    
+    private JavaDockerCodeSandboxNew javaDockerCodeSandboxNew;
+
     /**
      * 调用代码沙箱执行代码
      *
@@ -45,6 +48,6 @@ public class MainController {
         if (executeCodeRequest == null) {
             throw new RuntimeException("请求参数为空");
         }
-        return javaNativeCodeSandboxNew.executeCode(executeCodeRequest);
+        return javaDockerCodeSandboxNew.executeCode(executeCodeRequest);
     }
 }
