@@ -139,7 +139,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         List<String> outputList = new ArrayList<>();
 
         // 取所有测试用例的最大值
-        long maxTime = 0;
+        long maxTime = 0, maxMemory = 0;
         for (ExecuteMessage executeMessage : executeMessageList) {
             String errorMessage = executeMessage.getErrorMessage();
             if (StrUtil.isNotBlank(errorMessage)) {
@@ -151,6 +151,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
             if (maxTime < executeMessage.getTime()) {
                 maxTime = executeMessage.getTime();
             }
+            maxMemory = Math.max(maxMemory, executeMessage.getMemory());
             outputList.add(executeMessage.getMessage());
         }
         if (outputList.size() == executeMessageList.size()) {
@@ -161,7 +162,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         JudgeInfo judgeInfo = new JudgeInfo();
         judgeInfo.setTime(maxTime);
         // 要借助第三库实现，非常麻烦
-        // judgeInfo.setMemory();
+        judgeInfo.setMemory(maxMemory);
         executeCodeResponse.setJudgeInfo(judgeInfo);
 
         return executeCodeResponse;

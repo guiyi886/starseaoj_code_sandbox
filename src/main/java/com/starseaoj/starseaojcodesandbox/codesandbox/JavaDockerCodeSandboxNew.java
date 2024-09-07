@@ -135,10 +135,10 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 public void onNext(Frame frame) {
                     StreamType streamType = frame.getStreamType();
                     if (StreamType.STDERR.equals(streamType)) {
-                        errorMessage[0] = new String(frame.getPayload());
+                        errorMessage[0] = new String(frame.getPayload()).substring(0, frame.getPayload().length - 1);
                         System.out.println("输出错误结果：" + errorMessage[0]);
                     } else {
-                        message[0] = new String(frame.getPayload());
+                        message[0] = new String(frame.getPayload()).substring(0, frame.getPayload().length - 1);
                         System.out.println("输出结果：" + message[0]);
                     }
                     super.onNext(frame);
@@ -156,7 +156,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 }
 
                 @Override
-                public void close() throws IOException {
+                public void close() {
                 }
 
                 @Override
@@ -171,7 +171,6 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 public void onComplete() {
                 }
             });
-            statsCmd.exec(statisticsResultCallback);
 
             String execId = execCreateCmdResponse.getId();  // 获取容器id
             StopWatch stopWatch = new StopWatch();  // 计时
@@ -184,8 +183,8 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 stopWatch.stop();
                 time = stopWatch.getLastTaskTimeMillis();
 
-                statsCmd.close();   // 执行完后关闭统计命令
-            } catch (InterruptedException e) {
+                statisticsResultCallback.close();   // 执行完后关闭统计命令
+            } catch (InterruptedException | IOException e) {
                 System.out.println("程序执行异常");
                 throw new RuntimeException(e);
             }
@@ -193,7 +192,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
             executeMessage.setMessage(message[0]);
             executeMessage.setErrorMessage(errorMessage[0]);
             executeMessage.setTime(time);
-            executeMessage.setMemory(maxMemory[0]);
+            executeMessage.setMemory(maxMemory[0] / 1024);
             executeMessageList.add(executeMessage);
         }
         return executeMessageList;
