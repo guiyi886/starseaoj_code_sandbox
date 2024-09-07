@@ -161,7 +161,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
 
         JudgeInfo judgeInfo = new JudgeInfo();
         judgeInfo.setTime(maxTime);
-        // 要借助第三库实现，非常麻烦
+        // 本地代码沙箱要借助第三库实现，非常麻烦
         judgeInfo.setMemory(maxMemory);
         executeCodeResponse.setJudgeInfo(judgeInfo);
 

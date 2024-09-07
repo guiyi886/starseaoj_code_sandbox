@@ -16,7 +16,6 @@ import org.springframework.util.StopWatch;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -151,7 +150,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
             ResultCallback<Statistics> statisticsResultCallback = statsCmd.exec(new ResultCallback<Statistics>() {
                 @Override
                 public void onNext(Statistics statistics) {
-                    System.out.println("内存占用：" + statistics.getMemoryStats().getUsage());
+                    // System.out.println("内存占用：" + statistics.getMemoryStats().getUsage());
                     maxMemory[0] = Math.max(statistics.getMemoryStats().getUsage(), maxMemory[0]);
                 }
 
@@ -171,6 +170,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 public void onComplete() {
                 }
             });
+            statsCmd.exec(statisticsResultCallback);
 
             String execId = execCreateCmdResponse.getId();  // 获取容器id
             StopWatch stopWatch = new StopWatch();  // 计时
@@ -183,8 +183,9 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
                 stopWatch.stop();
                 time = stopWatch.getLastTaskTimeMillis();
 
-                statisticsResultCallback.close();   // 执行完后关闭统计命令
-            } catch (InterruptedException | IOException e) {
+                // statisticsResultCallback.close();   // 执行完后关闭统计命令
+                statsCmd.close();
+            } catch (InterruptedException e) {
                 System.out.println("程序执行异常");
                 throw new RuntimeException(e);
             }
@@ -195,6 +196,7 @@ public class JavaDockerCodeSandboxNew extends JavaCodeSandboxTemplate {
             executeMessage.setMemory(maxMemory[0] / 1024);
             executeMessageList.add(executeMessage);
         }
+        dockerClient.stopContainerCmd(CONTAINER_NAME).exec();   // 停止容器
         return executeMessageList;
     }
 
